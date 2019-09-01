@@ -1,41 +1,15 @@
-#!/bin/bash -eux
-# From https://github.com/box-cutter/debian-vm/blob/master/script/cleanup.sh
-# Then from https://github.com/jakobadam/packer-qemu-templates
+#!/bin/bash
 
-CLEANUP_PAUSE=${CLEANUP_PAUSE:-0}
-echo "==> Pausing for ${CLEANUP_PAUSE} seconds..."
-sleep ${CLEANUP_PAUSE}
-
-# Make sure Udev doesn't block our network
-# http://6.ptmc.org/?p=164
-echo "cleaning up udev rules"
-rm -rf /dev/.udev/
-rm /lib/udev/rules.d/75-persistent-net-generator.rules
-
-echo "==> Cleaning up leftover dhcp leases"
-if [ -d "/var/lib/dhcp" ]; then
-    rm /var/lib/dhcp/*
-fi
-
-echo "==> Cleaning up tmp"
-rm -rf /tmp/*
-
-# Cleanup apt cache
-apt-get -y autoremove --purge
+# Clean up
+apt-get -y --purge remove linux-headers-$(uname -r) build-essential
+apt-get -y --purge autoremove
+apt-get -y purge $(dpkg --list |grep '^rc' |awk '{print $2}')
+apt-get -y purge $(dpkg --list |egrep 'linux-image-[0-9]' |awk '{print $3,$2}' |sort -nr |tail -n +2 |grep -v $(uname -r) |awk '{ print $2}')
 apt-get -y clean
-apt-get -y autoclean
 
-echo "==> Installed packages"
-dpkg --get-selections | grep -v deinstall
-
-# Remove foreign language man files
-rm -rf /usr/share/man/??
-rm -rf /usr/share/man/??_*
-
-# Remove Bash history
+# Remove history file
 unset HISTFILE
-rm -f /root/.bash_history
+rm ~/.bash_history /home/vagrant/.bash_history
 
-# Clean up log files
-find /var/log -type f | while read f; do echo -ne '' > $f; done;
-
+# sync data to disk (fix packer)
+sync

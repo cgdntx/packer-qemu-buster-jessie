@@ -1,5 +1,4 @@
-# Update the box
+#!/bin/bash
 apt-get update
-# apt-get upgrade -y # shouldn't be required as Debian performs an upgrade during install
-apt-get autoremove -y
-apt-get clean
+# install curl to fix broken wget while retrieving content from secured sites
+apt-get -y install curl

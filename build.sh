@@ -4,7 +4,7 @@
 export PACKER_LOG="yes"
 export PACKER_LOG_PATH="build_output.log"
 
-packer build jessie.json
+packer build buster.json
 
 if [ $? -eq 0 ]
 then
